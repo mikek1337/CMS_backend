@@ -14,5 +14,6 @@ const articleRoute:Router = Router()
 
 
 articleRoute.post('/create', [IsAuthenticated], articleController.createArticle.bind(articleController));
-
+articleRoute.get('/me', [IsAuthenticated], articleController.getArticleByAuthor.bind(articleController));
+articleRoute.get('/author/:id',[IsAuthenticated], articleController.getAuthorArticle.bind(articleController))
 export default articleRoute;

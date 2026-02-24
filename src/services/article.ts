@@ -30,6 +30,39 @@ export class ArticleService{
     return article;
   }
 
+  async getArticleByAuthorId(authorId:string){
+    const articles = await this._prisma.article.findMany({
+      where:{
+        authorId: authorId
+      }
+    });
+    return articles;
+  }
+
+  async getArticleById(userId: string, articleId:string){
+    const article = await this._prisma.article.findFirst({
+      where:{
+        id: articleId,
+        author:{
+          userId: userId,
+        }
+      }
+    });
+    if(!article){
+      throw new Error("Article not found");
+    }
+    return article;
+  }
+
+  async getArticle(articleId:string){
+    const article = await this._prisma.article.findFirst({
+      where:{
+        id: articleId
+      }
+    });
+    return article;
+  }
+
   
 
   async updateArticle(userId:string ,articleId: string, updateArticleDto: Partial<UpdateArticleStatusType>){

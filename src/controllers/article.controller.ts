@@ -21,8 +21,18 @@ export class ArticleController {
         res.json({ message: 'saved', data: newArticle })
     }
 
-    async getArticleByAuthor(req: Request, res: Response) {
-        //:TODO IMPLEMENT GET ARTICLES BY AUTHOR        
+    async getArticleByAuthor(req: Request, res: Response<Res<Article[]>>) {
+        const userId = req.user.id;
+        const author = await this._authorService.getAuthorByUserId(userId);
+        const articles = await this._articleService.getArticleByAuthorId(author.author[0].id);
+        res.json({message: 'Articles fetched successful', data: articles});
+    }
+
+    async getAuthorArticle(req: Request<{id: string}>, res: Response<Res<Article>>){
+        const articleId = req.params.id;
+        const userId = req.user.id;
+        const article = await this._articleService.getArticleById(userId, articleId);
+        res.json({message: 'Article fetched successful', data: article});
     }
 
     async updateArticle(req: Request<{ articleId: string }>, res: Response<Res<Article>>) {

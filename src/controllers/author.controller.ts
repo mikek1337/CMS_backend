@@ -16,6 +16,4 @@ export class AuthorController{
     res.json({message: 'Author Profile Fetched Successfull', data: author})
   }
 
-  
-
 } 
