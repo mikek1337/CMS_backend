@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  booking:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminc70c051cc-832f
+      POSTGRES_DB: bookingdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgres/data
+
+volumes:
+  pgdata: {}

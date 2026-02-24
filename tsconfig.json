@@ -1,0 +1,28 @@
+{
+
+  "include": [
+    "./src/**/*",
+    "./src/types/express.d.ts"
+  ],
+ "ts-node": {
+      "files":true
+    },
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+   
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "declaration": true,
+   "module": "commonjs",
+    "target": "ES6",
+    "types": [],
+    "moduleResolution":"node",
+    "allowSyntheticDefaultImports": true,
+   // Recommended Options
+    "skipLibCheck": true,
+    "strict": true,
+    "outDir": "./dist",
+    "esModuleInterop": true,
+   },
+
+
+}
