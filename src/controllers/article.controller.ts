@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { type ArticleService } from "../services/article";
-import { CreateArticleSchema, UpdateArtcleStatusSchema, UpdatePublishStatusSchema } from "../types/article";
+import { ArticleFilterSchema, ArticleFilterType, CreateArticleSchema, UpdateArtcleStatusSchema, UpdatePublishStatusSchema } from "../types/article";
 import { Res } from "../interface/response";
 import { Article } from "../generated/prisma/client";
 import { type AuthorService } from "../services/author";
@@ -23,16 +23,43 @@ export class ArticleController {
 
     async getArticleByAuthor(req: Request, res: Response<Res<Article[]>>) {
         const userId = req.user.id;
+        let queryParam = {};
+        if(req.query.isPublished !== undefined){
+          queryParam = {...req.query, isPublished: req.query.isPublished==="true"}
+        }
+        else{
+          queryParam = {...req.query}
+        }
+        const queries:ArticleFilterType = ArticleFilterSchema.parse(queryParam);
         const author = await this._authorService.getAuthorByUserId(userId);
-        const articles = await this._articleService.getArticleByAuthorId(author.author[0].id);
+        const articles = await this._articleService.getArticleByAuthorId(author.author[0].id, queries);
         res.json({message: 'Articles fetched successful', data: articles});
     }
 
-    async getAuthorArticle(req: Request<{id: string}>, res: Response<Res<Article>>){
+    async getArticle(req: Request<{id:string}>, res: Response<Res<Article | null>>){
         const articleId = req.params.id;
+        const article = await this._articleService.getArticle(articleId);
+        res.json({message:'article fetched', data: article});
+    }
+
+    async getAuthorArticle(req: Request<{articleId: string}>, res: Response<Res<Article>>){
+        const articleId = req.params.articleId;
         const userId = req.user.id;
+        
         const article = await this._articleService.getArticleById(userId, articleId);
         res.json({message: 'Article fetched successful', data: article});
+    }
+
+    async getAuthorsPublishedArticles(req: Request<{authorId: string}>, res: Response<Res<Article[]>>){
+        const authorId = req.params.authorId;
+        const articles = await this._articleService.getAuthorPublishedArticle(authorId);
+        res.json({message: 'Author fetched successful', data: articles})
+    }
+    async getPublishedArticles(req:Request, res: Response<Res<{nextCursor:string | undefined, articles:Article[]}>>){
+      const queries:ArticleFilterType = ArticleFilterSchema.parse(req.query);
+      const {isPublished,cursor, ...rest} = queries;
+      const articles = await this._articleService.getArticles(rest, cursor);
+      res.json({message: 'Articles fetched successful', data:articles});
     }
 
     async updateArticle(req: Request<{ articleId: string }>, res: Response<Res<Article>>) {

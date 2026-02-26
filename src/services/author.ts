@@ -47,4 +47,22 @@ export class AuthorService{
     return updatedUser;
   }
 
+  async getPublicProfile(authorId:string){
+    const profile = this._prisma.author.findFirst({
+      where:{
+        id: authorId
+      },
+      include:{
+        user:{
+          select:{
+            name: true,
+            image: true,
+            createdAt: true
+          }
+        }
+      },
+    });
+    return profile;
+  }
+
 }

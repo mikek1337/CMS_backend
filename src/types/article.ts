@@ -24,6 +24,16 @@ export const UpdatePublishStatusSchema = ArticleSchema.pick({
   isPublished: true
 });
 
+
+export const  ArticleFilterSchema = z.object({
+  title: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  isPublished: z.coerce.boolean().optional(),
+  cursor:z.string().optional()
+})
+
+export type ArticleFilterType = z.infer<typeof ArticleFilterSchema>;
+
 export type UpdatePublishStatusType = z.infer<typeof UpdatePublishStatusSchema>;
 
 

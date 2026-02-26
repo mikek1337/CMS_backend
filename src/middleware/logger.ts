@@ -1,7 +1,7 @@
 import {Request, Response, NextFunction} from 'express';
 import {format, transports} from 'winston';
 import { loggerFactory } from '../utils/loggers';
-import { logMessage } from '../interface/logger';
+import { logMessage, Serverity } from '../interface/logger';
 
 const {json, timestamp, combine,simple, colorize} = format
 const logger = loggerFactory('winston', {
@@ -34,6 +34,7 @@ export function logHandler(req:Request, res:Response, next:NextFunction){
     method: req.method,
     endpoint: req.url,
   };
+  logger.log(Serverity.INFO, logMessage);
   req.logMessage = logMessage;
   req.logger = logger;
   next();

@@ -1,5 +1,5 @@
 import { PrismaClient } from "../generated/prisma/client";
-import { CreateArticleType, UpdateArticleStatusType } from "../types/article";
+import { ArticleFilterType, CreateArticleType, UpdateArticleStatusType } from "../types/article";
 
 export class ArticleService{
   private _prisma: PrismaClient;
@@ -30,10 +30,16 @@ export class ArticleService{
     return article;
   }
 
-  async getArticleByAuthorId(authorId:string){
+  async getArticleByAuthorId(authorId:string, filter?: ArticleFilterType){
+    let where = {}
+    if(filter){
+      where = this.buildArticleFilterWhere(filter);
+      
+    }
     const articles = await this._prisma.article.findMany({
       where:{
-        authorId: authorId
+        authorId: authorId,
+        ...where,
       }
     });
     return articles;
@@ -55,15 +61,75 @@ export class ArticleService{
   }
 
   async getArticle(articleId:string){
+    
     const article = await this._prisma.article.findFirst({
       where:{
-        id: articleId
+        id: articleId,
+        isPublished: true
+      },
+      include:{
+        author:{
+          include:{
+            user: true
+          }
+        }
       }
     });
+    if(!article){
+      throw new Error("Article not found");
+    }
     return article;
   }
 
-  
+  async getArticles(filter?:ArticleFilterType, cursor?:string){
+    let where = {}
+    if(filter){
+     where = this.buildArticleFilterWhere(filter) 
+    }
+    const pageSize = 10;
+    
+    const articles = await this._prisma.article.findMany({
+      where:{
+        ...where,
+        isPublished: true,
+      },
+      include:{
+        author:{
+          include:{
+            user: true
+          }
+        }
+      },
+      take: pageSize + 1,
+            orderBy:{
+        createdAt: 'desc'
+      }
+    });
+
+    let nextCursor: typeof cursor | undefined = undefined;
+    if(articles.length > pageSize){
+      const nextItem = articles.pop();
+      nextCursor = nextItem?.id;
+    } 
+    return {articles, nextCursor};
+  }
+
+  async getAuthorPublishedArticle(authorId:string){
+    const articles = await this._prisma.article.findMany({
+      where: {
+        authorId: authorId
+      },
+      include:{
+        author:{
+          include:{
+            user: true
+          }
+        }
+      }
+    });
+
+    return articles;
+  }
 
   async updateArticle(userId:string ,articleId: string, updateArticleDto: Partial<UpdateArticleStatusType>){
     const article = await this._prisma.article.findFirst({
@@ -106,4 +172,34 @@ export class ArticleService{
       }
     });
   }
+
+  buildArticleFilterWhere(filter:ArticleFilterType){
+    let where = {};  
+      if(filter.title){
+        where = {
+        ...where,
+        title:{
+          contains:filter.title 
+        }
+      }
+      }
+      if(filter.tags){
+        where = {
+          ...where,
+          tags:{
+            hasSome: filter.tags
+          }
+        }
+      }
+      if(filter.isPublished!==undefined){
+        where={
+          ...where,
+          isPublished: filter.isPublished
+        }
+      }
+    
+    return where;
+  }
 }
+
+

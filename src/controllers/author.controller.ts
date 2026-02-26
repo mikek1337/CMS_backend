@@ -16,4 +16,10 @@ export class AuthorController{
     res.json({message: 'Author Profile Fetched Successfull', data: author})
   }
 
+  async getPublicProfile(req:Request<{id: string}>, res:Response){
+    const authorId = req.params.id;
+    const profile = await this._authorService.getPublicProfile(authorId);
+    res.json({message: 'Author Public Profile Fetched Successfully', data: profile})
+  }
+
 } 
