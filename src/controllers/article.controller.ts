@@ -55,7 +55,7 @@ export class ArticleController {
         const articles = await this._articleService.getAuthorPublishedArticle(authorId);
         res.json({message: 'Author fetched successful', data: articles})
     }
-    async getPublishedArticles(req:Request, res: Response<Res<{nextCursor:string | undefined, articles:Article[]}>>){
+    async getPublishedArticles(req:Request, res: Response<Res<Article[]>>){
       const queries:ArticleFilterType = ArticleFilterSchema.parse(req.query);
       const {isPublished,cursor, ...rest} = queries;
       const articles = await this._articleService.getArticles(rest, cursor);
@@ -86,6 +86,26 @@ export class ArticleController {
         await this._articleService.deleteArticle(userId, articleId);
         res.json({ message: 'Deleted Article', data: null });
     }
+
+    async getTags(req: Request, res: Response<Res<string[]>>){
+        const tags = await this._articleService.getTags();
+        res.json({message: 'Tags fetched successful', data: tags})
+    }
+
+    async filterArticlesByTags(req: Request, res: Response){
+        const tags = req.query.tags;
+        if(typeof tags !== 'string' || tags.trim() === ''){
+            const articles = await this._articleService.getArticles();
+            res.json({message: 'Articles fetched successful', data: articles});
+            return;        
+        }
+        console.log(tags);
+        const tagsArray = tags.split(',').map(tag=>tag.trim());
+        const articles = await this._articleService.filterArticlesByTags(tagsArray);
+        res.json({message: 'Articles fetched successful', data: articles})
+    }
+
+    
 
 
 }

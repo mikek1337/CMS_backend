@@ -1,43 +1,43 @@
 import { PrismaClient } from "../generated/prisma/client";
 import { ArticleFilterType, CreateArticleType, UpdateArticleStatusType } from "../types/article";
 
-export class ArticleService{
+export class ArticleService {
   private _prisma: PrismaClient;
-  constructor(prisma: PrismaClient){
+  constructor(prisma: PrismaClient) {
     this._prisma = prisma;
   }
 
-  async createArticle(createArticleDto: CreateArticleType, authorId:string){
-    
-   if(!createArticleDto.id){
-    const article = await this._prisma.article.create({
-      data:{
+  async createArticle(createArticleDto: CreateArticleType, authorId: string) {
+
+    if (!createArticleDto.id) {
+      const article = await this._prisma.article.create({
+        data: {
+          ...createArticleDto,
+          authorId: authorId
+        }
+      });
+      return article
+    }
+    const article = await this._prisma.article.update({
+      where: {
+        id: createArticleDto.id
+      },
+      data: {
         ...createArticleDto,
         authorId: authorId
       }
-    });
-    return article
-   }
-   const article = await this._prisma.article.update({
-    where:{
-      id: createArticleDto.id
-    },
-    data:{
-      ...createArticleDto,
-      authorId: authorId
-    }
-   })
+    })
     return article;
   }
 
-  async getArticleByAuthorId(authorId:string, filter?: ArticleFilterType){
+  async getArticleByAuthorId(authorId: string, filter?: ArticleFilterType) {
     let where = {}
-    if(filter){
+    if (filter) {
       where = this.buildArticleFilterWhere(filter);
-      
+
     }
     const articles = await this._prisma.article.findMany({
-      where:{
+      where: {
         authorId: authorId,
         ...where,
       }
@@ -45,83 +45,80 @@ export class ArticleService{
     return articles;
   }
 
-  async getArticleById(userId: string, articleId:string){
+  async getArticleById(userId: string, articleId: string) {
     const article = await this._prisma.article.findFirst({
-      where:{
+      where: {
         id: articleId,
-        author:{
+        author: {
           userId: userId,
         }
       }
     });
-    if(!article){
+    if (!article) {
       throw new Error("Article not found");
     }
     return article;
   }
 
-  async getArticle(articleId:string){
+  async getArticle(articleId: string) {
     
     const article = await this._prisma.article.findFirst({
-      where:{
+      where: {
         id: articleId,
         isPublished: true
       },
-      include:{
-        author:{
-          include:{
+      include: {
+        author: {
+          include: {
             user: true
           }
         }
       }
     });
-    if(!article){
+    if (!article) {
       throw new Error("Article not found");
     }
     return article;
   }
 
-  async getArticles(filter?:ArticleFilterType, cursor?:string){
+  async getArticles(filter?: ArticleFilterType, cursor?: string) {
     let where = {}
-    if(filter){
-     where = this.buildArticleFilterWhere(filter) 
+    if (filter) {
+      where = this.buildArticleFilterWhere(filter)
     }
     const pageSize = 10;
-    
+
     const articles = await this._prisma.article.findMany({
-      where:{
+      where: {
         ...where,
         isPublished: true,
       },
-      include:{
-        author:{
-          include:{
+      include: {
+        author: {
+          include: {
             user: true
           }
         }
       },
       take: pageSize + 1,
-            orderBy:{
+      orderBy: {
         createdAt: 'desc'
       }
     });
 
-    let nextCursor: typeof cursor | undefined = undefined;
-    if(articles.length > pageSize){
-      const nextItem = articles.pop();
-      nextCursor = nextItem?.id;
-    } 
-    return {articles, nextCursor};
+    return articles;
+
+
   }
 
-  async getAuthorPublishedArticle(authorId:string){
+  async getAuthorPublishedArticle(authorId: string) {
     const articles = await this._prisma.article.findMany({
       where: {
         authorId: authorId
       },
-      include:{
-        author:{
-          include:{
+      include: {
+        author: {
+          include: {
             user: true
           }
         }
@@ -131,75 +128,110 @@ export class ArticleService{
     return articles;
   }
 
-  async updateArticle(userId:string ,articleId: string, updateArticleDto: Partial<UpdateArticleStatusType>){
+  async updateArticle(userId: string, articleId: string, updateArticleDto: Partial<UpdateArticleStatusType>) {
     const article = await this._prisma.article.findFirst({
       where: {
         id: articleId,
-        author:{
+        author: {
           userId: userId
         }
       }
     });
-    if(!article){
+    if (!article) {
       throw new Error("Article not found");
     }
     const updatedArticle = await this._prisma.article.update({
-      where:{
+      where: {
         id: articleId
       },
-      data:{
+      data: {
         ...updateArticleDto,
       }
     });
     return updatedArticle;
   }
 
-  async deleteArticle(userId: string, articleId: string){
+  async deleteArticle(userId: string, articleId: string) {
     const article = this._prisma.article.findFirst({
-      where:{
+      where: {
         id: articleId,
-        author:{
+        author: {
           userId: userId,
         }
       }
     });
-    if(!article){
+    if (!article) {
       throw new Error("Article Not Found");
     }
     await this._prisma.article.delete({
-      where:{
+      where: {
         id: articleId
       }
     });
   }
 
-  buildArticleFilterWhere(filter:ArticleFilterType){
-    let where = {};  
-      if(filter.title){
-        where = {
+  buildArticleFilterWhere(filter: ArticleFilterType) {
+    let where = {};
+    if (filter.title) {
+      where = {
         ...where,
-        title:{
-          contains:filter.title 
+        title: {
+          contains: filter.title
         }
       }
-      }
-      if(filter.tags){
-        where = {
-          ...where,
-          tags:{
-            hasSome: filter.tags
-          }
+    }
+    if (filter.tags) {
+      where = {
+        ...where,
+        tags: {
+          hasSome: filter.tags
         }
       }
-      if(filter.isPublished!==undefined){
-        where={
-          ...where,
-          isPublished: filter.isPublished
-        }
+    }
+    if (filter.isPublished !== undefined) {
+      where = {
+        ...where,
+        isPublished: filter.isPublished
       }
-    
+    }
+
     return where;
   }
-}
 
+  async getTags() {
+    const tags = await this._prisma.article.findMany({
+      where: {
+        isPublished: true,
+      },
+      select: {
+        tags: true
+      }
+    });
+    const uniqueTags = new Set<string>();
+    tags.forEach(article => {
+      article.tags.forEach(tag => uniqueTags.add(tag))
+    })
+    return Array.from(uniqueTags);
+  }
+
+  async filterArticlesByTags(tags: string[]) {
+    const articles = await this._prisma.article.findMany({
+      where: {
+        isPublished: true,
+        tags: {
+          hasSome: tags
+        }
+      },
+      include: {
+        author: {
+          include: {
+            user: true
+          }
+
+        }
+      }
+    });
+    return articles;
+  }
+}
 

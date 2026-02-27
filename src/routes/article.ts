@@ -20,4 +20,6 @@ articleRoute.get('/:id', articleController.getArticle.bind(articleController));
 articleRoute.get('/author/:authorId', articleController.getAuthorsPublishedArticles.bind(articleController));
 articleRoute.get('/author/article/:articleId',[IsAuthenticated], articleController.getAuthorArticle.bind(articleController));
 articleRoute.delete('/:articleId', [IsAuthenticated], articleController.deleteArticle.bind(articleController));
+articleRoute.get('/filter/gettags', articleController.getTags.bind(articleController));
+articleRoute.get('/filter/searchbytag/', articleController.filterArticlesByTags.bind(articleController));
 export default articleRoute;
