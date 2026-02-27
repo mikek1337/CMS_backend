@@ -39,12 +39,10 @@ The `.env` file is used to configure database connection, authentication secrets
 
 ```
 PORT=3000
-DATABASE_URL="postgresql://admin:adminc70c051cc-832f@localhost:5432/cms?schema=public"
+DATABASE_URL="<connection_string>"
 BETTER_AUTH_SECRET="<your_secret>"
-BETTER_AUTH_URL="http://localhost:3000"
-GOOGLE_CLIENT_ID="<your_google_client_id>"
-GOOGLE_CLIENT_SECRET="<your_google_client_secret>"
-FRONTEND_URL="http://localhost:5173"
+BETTER_AUTH_URL="<your_backend_server_url>"
+FRONTEND_URL="<your_frontend_url>"
 ```
 
 **Usage:**
@@ -73,11 +71,46 @@ FRONTEND_URL="http://localhost:5173"
 
 ### Notes
 - Make sure your database is running and accessible via the `DATABASE_URL` in `.env`.
-- For Google authentication, set up your credentials in the Google Developer Console and update `.env`.
-- The backend expects the frontend to be available at `FRONTEND_URL`.
 
 ---
 
 ### Troubleshooting
 - If you encounter issues with environment variables in Docker, ensure `env_file: .env` is set in your `docker-compose.yml`.
 - For Prisma, environment variables are not automatically loaded; ensure you import `dotenv/config` in your `prisma.config.ts` if needed.
+
+---
+
+### Database Schema
+
+The backend uses a PostgreSQL database managed via Prisma ORM. Below is a summary of the main models:
+
+#### User
+- Represents a user of the CMS.
+- Fields: `id`, `name`, `email`, `emailVerified`, `image`, `createdAt`, `updatedAt`.
+- Relations: Has many `Session`, `Account`, and `Author` records.
+
+#### Session
+- Tracks user login sessions.
+- Fields: `id`, `expiresAt`, `token`, `createdAt`, `updatedAt`, `ipAddress`, `userAgent`, `userId`.
+- Relations: Linked to a `User`.
+
+#### Account
+- Stores authentication provider accounts (e.g., Google, local).
+- Fields: `id`, `accountId`, `providerId`, `userId`, `accessToken`, `refreshToken`, `idToken`, `accessTokenExpiresAt`, `refreshTokenExpiresAt`, `scope`, `password`, `createdAt`, `updatedAt`.
+- Relations: Linked to a `User`.
+
+#### Verification
+- Handles verification flows (e.g., email verification).
+- Fields: `id`, `identifier`, `value`, `expiresAt`, `createdAt`, `updatedAt`.
+
+#### Author
+- Represents an author profile for a user.
+- Fields: `id`, `userId`, `createdAt`, `updatedAt`.
+- Relations: Linked to a `User` and has many `Article` records.
+
+#### Article
+- Represents an article written by an author.
+- Fields: `id`, `title`, `body`, `tags`, `isPublished`, `authorId`, `createdAt`, `updatedAt`.
+- Relations: Linked to an `Author`.
+
+See prisma/schema.prisma for the full schema definition.

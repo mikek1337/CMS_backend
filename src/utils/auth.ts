@@ -3,14 +3,14 @@ import { prismaAdapter } from "better-auth/adapters/prisma"
 import "dotenv/config";
 import { db } from "./db"
 
-const origins = [process.env.FRONTEND_URL]
+const origins = [process.env.FRONTEND_URL!]
 
 export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: 'postgresql'
   }),
   trustedOrigins:[
-    'http://localhost:5173'
+    ...origins
   ],
   databaseHooks:{
     user:{
