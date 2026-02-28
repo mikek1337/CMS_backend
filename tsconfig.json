@@ -3,7 +3,7 @@
   "include": [
     "./src/**/*",
     "./src/types/express.d.ts"
-  ],
+, "src/tests/services"  ],
  "ts-node": {
       "files":true
     },
