@@ -34,7 +34,7 @@ export function logHandler(req:Request, res:Response, next:NextFunction){
     method: req.method,
     endpoint: req.url,
   };
-  logger.log(Serverity.INFO, logMessage);
+  logger.log(Serverity.DEBUG, logMessage);
   req.logMessage = logMessage;
   req.logger = logger;
   next();

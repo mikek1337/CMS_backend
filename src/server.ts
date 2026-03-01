@@ -5,6 +5,7 @@ import "dotenv/config";
 import { logHandler } from "./middleware/logger";
 import cors from 'cors'
 import route from "./routes";
+import { errorHandler } from "./middleware/errorhandling";
 const app = express();
 
 app.use(cors({
@@ -20,6 +21,7 @@ app.use(express.json());
 
 app.use('/api', route)
 
+app.use(errorHandler);
 
 const port = process.env.PORT;
 
