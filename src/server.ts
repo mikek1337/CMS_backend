@@ -6,6 +6,7 @@ import { logHandler } from "./middleware/logger";
 import cors from 'cors'
 import route from "./routes";
 import { errorHandler } from "./middleware/errorhandling";
+import { rateLimitHandler } from "./middleware/ratelimithandler";
 const app = express();
 
 app.use(cors({
@@ -14,6 +15,8 @@ app.use(cors({
 }))
 
 app.use(logHandler)
+
+app.use(rateLimitHandler)
 
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
